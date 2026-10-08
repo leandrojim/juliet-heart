@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050308" />
+  <title>juliet &lt;3</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      background: #050308;
+      color: #ffd6e7;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    body {
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at center, rgba(90, 20, 55, .15), transparent 55%),
+        #050308;
+    }
+    .scene {
+      width: min(94vw, 620px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transform: translateY(-2vh);
+    }
+    canvas {
+      width: 100%;
+      max-height: 70svh;
+      aspect-ratio: 1 / 1;
+      display: block;
+      filter: drop-shadow(0 0 10px rgba(255, 133, 183, .22));
+    }
+    .name {
+      margin-top: -1.5rem;
+      font-size: clamp(2rem, 8vw, 3.5rem);
+      letter-spacing: .09em;
+      color: #ffd3e5;
+      text-shadow: 0 0 8px #ff8fbd, 0 0 24px rgba(255, 90, 160, .65);
+      animation: pulse 2.6s ease-in-out infinite;
+    }
+    .name span { color: #ff8fbd; }
+    @keyframes pulse {
+      0%, 100% { opacity: .82; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.035); }
+    }
+    .hint {
+      margin-top: 1rem;
+      font: 12px/1.4 system-ui, sans-serif;
+      color: rgba(255, 214, 231, .35);
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .name { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="scene">
+    <canvas id="heart" aria-label="Corazón rosado animado"></canvas>
+    <div class="name">juliet <span>&lt;3</span></div>
+    <div class="hint">Cosa bien hecha</div>
+  </main>
+  <script>
+    const canvas = document.getElementById("heart");
+    const ctx = canvas.getContext("2d");
+    let width, height, scale, dots = [];
+    const pinks = ["#ffb6d2", "#ffc5dc", "#f58db8", "#ffd9e8", "#e987ad"];
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = rect.width;
+      height = rect.height;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      scale = Math.min(width, height) / 38;
+      dots = [];
+  
+      for (let layer = 0; layer < 8; layer++) {
+        for (let i = 0; i < 220; i++) {
+          const a = (i / 220) * Math.PI * 2;
+          const wobble = (Math.random() - .5) * .16;
+          const x = 16 * Math.pow(Math.sin(a), 3);
+          const y = 13 * Math.cos(a) - 5 * Math.cos(2*a) -
+                    2 * Math.cos(3*a) - Math.cos(4*a);
+          dots.push({
+            x: x * (1 + wobble) * (0.77 + layer * .035),
+            y: y * (1 + wobble) * (0.77 + layer * .035),
+            r: .45 + Math.random() * 1.0,
+            alpha: .35 + Math.random() * .65,
+            color: pinks[Math.floor(Math.random() * pinks.length)],
+            phase: Math.random() * Math.PI * 2,
+            speed: .4 + Math.random() * 1.2
+          });
+        }
+      }
+    }
+
+    let start = performance.now();
+    function draw(now) {
+      const time = (now - start) / 1000;
+      ctx.clearRect(0, 0, width, height);
+      const cx = width / 2;
+      const cy = height * .48;
+      const beat = 1 + .025 * Math.pow((Math.sin(time * 2.2) + 1) / 2, 8);
+      for (const p of dots) {
+        const twinkle = .55 + .45 * Math.sin(time * p.speed + p.phase);
+        ctx.globalAlpha = p.alpha * twinkle;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(cx + p.x * scale * beat, cy - p.y * scale * beat,
+                p.r * (0.8 + twinkle * .35), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(draw);
+    }
+    window.addEventListener("resize", resize);
+    resize();
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>
